@@ -1,0 +1,4 @@
+========================================
+       DEMO ADMIN APPLICATION
+       Spring Boot ${spring-boot.version}
+========================================
