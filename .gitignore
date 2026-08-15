@@ -23,9 +23,6 @@ hs_err_pid*
 # VS Code machine-local files
 .vscode/*.log
 
-# External runtime configuration at the project root
-/config/
-
 # Operating system files
 .DS_Store
 Thumbs.db
