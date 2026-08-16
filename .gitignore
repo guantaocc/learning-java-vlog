@@ -1,6 +1,7 @@
 # Maven build output
 target/
 .m2-cache/
+logs/
 
 # Java
 *.class
