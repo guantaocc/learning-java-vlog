@@ -1,43 +1,90 @@
 package com.example.demo.web;
 
-import java.util.Arrays;
+import java.net.URI;
 import java.util.List;
+
+import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.demo.model.User;
 import com.example.demo.service.UserService;
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping("/users")
-    public User createUser(@RequestBody User user) {
-        user.setId(100L);
-        return user;
+    private void validateId(Long id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("用户 ID 必须大于 0");
+        }
     }
 
-    @GetMapping("/users/list")
-    public List<User> listusers() {
-        return Arrays.asList(
-                new User(1L, "Tom", 20),
-                new User(2L, "Jerry", 22),
-                new User(3L, "Alice", 25));
+    @PostMapping
+    public ResponseEntity<User> createUser(
+            @Valid @RequestBody User user) {
+
+        User createdUser = userService.create(user);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdUser.getId())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(createdUser);
     }
 
-    @GetMapping("/users/{id}")
+    @PutMapping("/{id}")
+    public User updateUser(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody User user) {
+
+        validateId(id);
+
+        return userService.update(id, user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable("id") Long id) {
+
+        if (id <= 0) {
+            throw new IllegalArgumentException("用户 ID 必须大于 0");
+        }
+
+        userService.deleteById(id);
+
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
+
+    @GetMapping
+    public List<User> listUsers() {
+        return userService.findAll();
+    }
+
+    @GetMapping("/{id}")
     public User getUser(@PathVariable("id") Long id) {
         logger.debug("开始查询用户，id={}", id);
 
